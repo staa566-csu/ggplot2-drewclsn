@@ -74,7 +74,7 @@ p_loans + scale_color_viridis(option = "turbo", discrete = T) + theme_bw() +
 
 In the chart above, the blue areas represent times of economic recession while each line is either the Prime lending rate or some form of loan delinquency rate.
 
-All data is from the United States Federal Reserve of St. Louis accessed through the FRED economic data portal \<a href="https://fred.stlouisfed.org/#"\>here\</a\>. The datasets used can be found under:
+All data is from the United States Federal Reserve of St. Louis accessed through the FRED economic data portal here: https://fred.stlouisfed.org/#. The datasets used can be found under:
 
 Prime Rate: **PRIME**
 
@@ -85,5 +85,3 @@ Consumer: **DRCLACBS**
 Business: **DRBLACBS**
 
 All data was accessed on September 16th, 2022
-
-https://fred.stlouisfed.org/#
