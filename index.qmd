@@ -1,0 +1,89 @@
+---
+title: "ggplot2 Assignment"
+author: "Drew Clayson"
+format:
+  html:
+    link-external-icon: true
+    link-external-newwindow: true
+    
+editor: visual
+---
+
+# STAA 566 ggplot2 Assignment
+
+Loan delinquency is the idea that individuals are overdue on loan payments by at least 30 days. The prime rate is the minimum rate that a bank would be willing to lend money to an individual with good credit.
+
+We begin by reading in the data
+
+```{r}
+# Read in data
+library(zoo)
+library(viridis)
+BD <- read.csv.zoo("BusinessDelinquency.csv")
+CD <- read.csv.zoo("CreditDelinquency.csv")
+RD <- read.csv.zoo("ResidentialDelinquency.csv")
+PR <- read.csv.zoo("PrimeRate.csv")
+library(tidyverse)
+library(ggplot2)
+X <- merge(PR, BD, CD, RD)
+X <- data.frame(index(X), as.data.frame(X))
+colnames(X)[1] <- "x"
+X <- X %>% fill(names(X)[2:5]) %>% filter(x >= "1996-01-01")
+X_long <- gather(X, Market, Rate, PR:RD)
+```
+
+Now that data has been loaded and properly formatted, we can go on to creating the graphic
+
+```{r}
+p_loans <- ggplot(data = X_long,
+                  mapping = aes(x = x,
+                                y = Rate,
+                                colour = Market))
+#add annotation rectangles to denote recession
+p_loans <- p_loans + annotate("rect", xmin = as.Date("2001-01-01"), xmax = as.Date("2001-10-01"), ymin = 0, ymax = 12,
+                   alpha = .1, fill = "blue") +
+  annotate("rect", xmin = as.Date("2007-10-01"), xmax = as.Date("2009-07-01"), ymin = 0, ymax = 12,
+                   alpha = .1, fill = "blue") +
+  annotate("rect", xmin = as.Date("2020-01-01"), xmax = as.Date("2020-07-01"), ymin = 0, ymax = 12,
+                   alpha = .1, fill = "blue") +
+  # Add the line plots
+  geom_line()
+p_loans <- p_loans + guides(color = F)
+
+line_ends <- ggplot_build(p_loans)$data[[4]] %>% 
+  group_by() %>% 
+  filter(x==max(x))
+#add market label
+line_ends$Market <- X_long %>% pull(Market) %>% 
+  unique() %>% 
+  as.character() %>% 
+  sort()
+# add direct labels to graph
+p_loans <- p_loans +  ggrepel::geom_label_repel(data = line_ends, 
+                         aes(x = as.Date(line_ends$x), y = line_ends$y, 
+                             label = c("Business","Credit","Prime","Resident")), 
+                         nudge_x = 1000000,
+                         label.size=NA,
+                         fill = alpha(c("white"),0))
+p_loans <- p_loans + expand_limits(x = as.Date("2028-01-01"))
+# Add color palette and adjust theme
+p_loans + scale_color_viridis(option = "turbo", discrete = T) + theme_bw() +
+  # Adjust some details
+  ggtitle("Loan Delinqencies & Prime Rate") + xlab("Date")
+```
+
+In the chart above, the blue areas represent times of economic recession while each line is either the Prime lending rate or some form of loan delinquency rate.
+
+All data is from the United States Federal Reserve of St. Louis accessed through the FRED economic data portal \<a href="https://fred.stlouisfed.org/#"\>here\</a\>. The datasets used can be found under:
+
+Prime Rate: **PRIME**
+
+Residential: **DRSFRMACBS**
+
+Consumer: **DRCLACBS**
+
+Business: **DRBLACBS**
+
+All data was accessed on September 16th, 2022
+
+https://fred.stlouisfed.org/#
